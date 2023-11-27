@@ -10,8 +10,6 @@ public class Spline{
     private double aligningConstant = 0.005;
     private double correctionP;
 
-    private double splineSample = 20;
-
     private double robot[];
 
     /**
@@ -83,24 +81,37 @@ public class Spline{
 
     private double desiredT(){
 
-        double height = 1000000;
-        double desiredT = 0;
+        double height1 = 1000000;
+        double height2 = 1000000;
+
+        double higherBound = 0;
+        double lowerBound = 1;
+
+        double splineSample = 20;
+
 
         double[] intersections = DoubleStream.iterate(0, n -> n + 1 / splineSample).limit(1).toArray();
 
         for (double i : intersections){
+            if(distance(i) < height1){
 
-            double tryHeight = distance(i);
+                height1 = distance(i);
+                lowerBound = i;
 
-            if(tryHeight < height){
+            }else if(distance(i) < height2){
 
-                height = tryHeight;
-                desiredT = i;
+                height2 = distance(i);
+                higherBound = i;
 
             }
-
+            
         }
-        
+
+        double average = (lowerBound + higherBound) / 2;
+        double weight = 0.002 * (height1 - height2) / (lowerBound - higherBound);
+
+        double desiredT = average - weight;
+
         return desiredT;
 
     }

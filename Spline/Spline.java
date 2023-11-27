@@ -9,6 +9,7 @@ public class Spline{
     private double[] entrance, entranceControl, exit, exitControl;
     private double aligningConstant = 0.005;
     private double correctionP;
+    private double weightConstant;
 
     private double robot[];
 
@@ -20,14 +21,16 @@ public class Spline{
      * @param exit ending point for spline
      * @param exitControl alters curve around exit
      * @param correctionP changes strength of correction
+     * @param weightConstant changes the weight of slope correction (desired t)
      */
-    public Spline(double[] entrance, double[] entranceControl, double[] exit, double[] exitControl, double correctionP){
+    public Spline(double[] entrance, double[] entranceControl, double[] exit, double[] exitControl, double correctionP, double weightConstant){
         
         this.entrance = entrance;
         this.entranceControl = entranceControl;
         this.exit = exit;
         this.exitControl = exitControl;
         this.correctionP = correctionP;
+        this.weightConstant = weightConstant;
 
     }
 
@@ -96,7 +99,6 @@ public class Spline{
         double lowerBound = 1;
 
         double splineSample = 20;
-        double weightConstant = 0.002;
 
 
         double[] intersections = DoubleStream.iterate(0, n -> n + 1 / splineSample).limit(1).toArray();

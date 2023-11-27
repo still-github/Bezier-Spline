@@ -1,5 +1,7 @@
 package Spline;
 
+import java.util.stream.DoubleStream;
+
 public class Spline{
     /**
      * Main spline class
@@ -8,7 +10,7 @@ public class Spline{
     private double aligningConstant = 0.005;
     private double correctionP;
 
-    double t = 0;
+    private double splineSample = 20;
 
     private double robot[];
 
@@ -79,23 +81,27 @@ public class Spline{
         return d;
     }
 
-    /**
-     * used to get the closest t value to the robot
-     * @return returns closest t value on robot
-     */
     private double desiredT(){
 
-        if( distance(t) < distance(t + aligningConstant) ){
+        double height = 1000000;
+        double desiredT = 0;
 
-            t -= aligningConstant;
+        double[] intersections = DoubleStream.iterate(0, n -> n + 1 / splineSample).limit(1).toArray();
 
-        }else{
+        for (double i : intersections){
 
-            t += aligningConstant;
+            double tryHeight = distance(i);
+
+            if(tryHeight < height){
+
+                height = tryHeight;
+                desiredT = i;
+
+            }
 
         }
-
-        return t;
+        
+        return desiredT;
 
     }
     

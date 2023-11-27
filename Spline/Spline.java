@@ -96,6 +96,7 @@ public class Spline{
         double lowerBound = 1;
 
         double splineSample = 20;
+        double weightConstant = 0.002;
 
 
         double[] intersections = DoubleStream.iterate(0, n -> n + 1 / splineSample).limit(1).toArray();
@@ -116,7 +117,7 @@ public class Spline{
         }
 
         double average = (lowerBound + higherBound) / 2;
-        double weight = 0.002 * (height1 - height2) / (lowerBound - higherBound);
+        double weight = weightConstant * (height1 - height2) / (lowerBound - higherBound);
 
         double desiredT = average - weight;
 

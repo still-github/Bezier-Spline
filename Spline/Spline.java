@@ -79,6 +79,14 @@ public class Spline{
         return d;
     }
 
+
+    /**
+     * used to find optimal t value for bezier 
+     * draws vertical lines on distance curve and finds intersections
+     * finds two lowest values and gets approx local min
+     * 
+     * @return optimal t value for bezier (from 0 to 1)
+     */
     private double desiredT(){
 
         double height1 = 1000000;
@@ -140,7 +148,7 @@ public class Spline{
         // is the bot above or below the curve, should return 1 or -1
         double botState = bezierY(desiredT()) / Math.abs(bezierY(desiredT()));
 
-        double correction = correctionP * distance(desiredT()) * botState;
+        double correction = Math.abs(correctionP * distance(desiredT())) * botState;
     
         return SplineMath.addAngles(correction, slope);
 

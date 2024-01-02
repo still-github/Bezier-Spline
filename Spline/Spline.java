@@ -136,7 +136,6 @@ public class Spline {
 
         double thetaTangent;
         double thetaTrue;
-        double thetaNormal;
         double clippedDistance;
         double lx;
         double ly;
@@ -144,11 +143,7 @@ public class Spline {
         double bverser;
 
         thetaTangent = Math.atan(derivative(desiredT()));
-        if(robotPosition[1] >= -1 / derivative(desiredT()) * (robotPosition[0] - bezierX(desiredT())) + bezierY(desiredT())){
-            thetaNormal = Math.atan(-1 / derivative(desiredT()));
-        }else{
-            thetaNormal = Math.atan(-1 / derivative(desiredT())) + Math.PI;
-        }
+
         reverser = bezierX(desiredT()) < bezierX(desiredT() + 0.001) ? 0 : Math.PI;
 
         clippedDistance = SplineMath.clip(distance(desiredT()), 0, correctionDistance);
@@ -161,7 +156,7 @@ public class Spline {
         if(clippedDistance < correctionDistance){
             thetaTrue = SplineMath.addAngles(Math.atan((robotPosition[1] - ly) / (robotPosition[0] - lx)), bverser);
         }else{
-            thetaTrue = thetaNormal;
+            thetaTrue = SplineMath.addAngles(Math.atan((robotPosition[1] - bezierY(desiredT())) / (robotPosition[0] - bezierX(desiredT()))), bverser);
         }
         
         return thetaTrue;

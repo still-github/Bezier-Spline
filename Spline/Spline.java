@@ -11,7 +11,6 @@ public class Spline {
     private double[][] points;
     private double correctionDistance;
     private double[] robotPosition;
-    private double correctionDeadband;
 
     /**
      * this uses cubic bezier so there should be 4 points, the first and last are the start and end points, the middle two are the points that define the curve.
@@ -20,13 +19,11 @@ public class Spline {
      * @param correctionDistance how far off should the bot be before curving back on
      * @param robotPosition starting point of robot
      */
-    public Spline(double[][] points, double correctionDistance, double[] robotPosition, double correctionDeadband){
+    public Spline(double[][] points, double correctionDistance, double[] robotPosition){
         
         this.points = points;
         this.correctionDistance = correctionDistance;
         this.robotPosition = robotPosition;
-        this.correctionDeadband = correctionDeadband;
-
     }
 
     /**
@@ -130,6 +127,15 @@ public class Spline {
 
         return desiredT;
     }
+    /**
+     * tangnet line for t 
+     * @return any y value for the input x and t 
+     */
+    private double tangentLine(double x, double t){
+        double value = derivative(t) * (x - bezierX(t)) + bezierY(t);
+
+        return value;
+    }
 
     /**
      * gives angle bot needs to move at [-π, π]
@@ -141,8 +147,11 @@ public class Spline {
         double thetaTangent;
         double thetaTrue;
         double clippedDistance;
+        double lx;
+        double ly;
+        double reverser;
         
-        //used to check which angle from the line to use (left to right or right to left)
+        // used to check which angle from the line to use (left to right or right to left)
         // using over or under tangent line to check
 
         if(robotPosition[1] <= (derivative(desiredT())) * (robotPosition[0] - bezierX(desiredT())) + bezierY(desiredT())){
@@ -159,24 +168,19 @@ public class Spline {
             thetaTangent = SplineMath.addAngles(Math.atan(derivative(desiredT())), Math.PI);
         }
 
-        //adding correction
-
-        // this is to make sure it follows the normal line until the desired distance to start correcting
-        // distance is positive so no need for a negative lower bound
-
         clippedDistance = SplineMath.clip(distance(desiredT()), 0, correctionDistance);
 
+        lx = bezierX(desiredT()) + Math.cos(thetaTangent) * (correctionDistance - clippedDistance);
+        ly = bezierY(desiredT()) + Math.sin(thetaTangent) * (correctionDistance - clippedDistance);
 
-        //draws out a chase point to lerp to, but only within correction range
-        if(distance(desiredT()) > correctionDistance){
-            thetaTrue = thetaNormal;
-        }else if(distance(desiredT()) < correctionDeadband){
-            thetaTrue = thetaTangent;
+        reverser = bezierX(desiredT()) < robotPosition[0] ? Math.PI : 0;
+
+
+        if(clippedDistance < correctionDistance){
+            thetaTrue = SplineMath.addAngles(Math.atan((robotPosition[1] - ly) / (robotPosition[0] - lx)), reverser);
         }else{
-            thetaTrue = 0;
+            thetaTrue = thetaNormal;
         }
-
-
         
         return thetaTrue;
 

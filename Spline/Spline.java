@@ -11,6 +11,7 @@ public class Spline {
     private double[][] points;
     private double correctionDistance;
     private double[] robotPosition;
+    private int steps;
 
     /**
      * this uses cubic bezier so there should be 4 points, the first and last are the start and end points, the middle two are the points that define the curve.
@@ -18,12 +19,14 @@ public class Spline {
      * @param points input points (should be 4)
      * @param correctionDistance how far off should the bot be before curving back on
      * @param robotPosition starting point of robot
+     * @param steps number of intervals desired t is broken into (larger means more precise)
      */
-    public Spline(double[][] points, double correctionDistance, double[] robotPosition){
+    public Spline(double[][] points, double correctionDistance, double[] robotPosition, int steps) {
         
         this.points = points;
         this.correctionDistance = correctionDistance;
         this.robotPosition = robotPosition;
+        this.steps = steps;
     }
 
     /**
@@ -110,7 +113,7 @@ public class Spline {
         double desiredT = 0;
 
         //number of points sampled
-        double splineSample = 100;
+        double splineSample = steps;
 
 
         double[] intersections = DoubleStream.iterate(0, n -> n + 1 / splineSample).limit((int)(splineSample)).toArray();

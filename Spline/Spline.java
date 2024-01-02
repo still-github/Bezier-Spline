@@ -110,7 +110,7 @@ public class Spline {
         double desiredT = 0;
 
         //number of points sampled
-        double splineSample = 50;
+        double splineSample = 100;
 
 
         double[] intersections = DoubleStream.iterate(0, n -> n + 1 / splineSample).limit((int)(splineSample)).toArray();
@@ -127,15 +127,6 @@ public class Spline {
 
         return desiredT;
     }
-    /**
-     * tangnet line for t 
-     * @return any y value for the input x and t 
-     */
-    private double tangentLine(double x, double t){
-        double value = derivative(t) * (x - bezierX(t)) + bezierY(t);
-
-        return value;
-    }
 
     /**
      * gives angle bot needs to move at [-π, π]
@@ -143,41 +134,32 @@ public class Spline {
      */
     public double angle(){
 
-        double thetaNormal;
         double thetaTangent;
         double thetaTrue;
+        double thetaNormal;
         double clippedDistance;
         double lx;
         double ly;
         double reverser;
-        
-        // used to check which angle from the line to use (left to right or right to left)
-        // using over or under tangent line to check
+        double bverser;
 
-        if(robotPosition[1] <= (derivative(desiredT())) * (robotPosition[0] - bezierX(desiredT())) + bezierY(desiredT())){
+        thetaTangent = Math.atan(derivative(desiredT()));
+        if(robotPosition[1] >= -1 / derivative(desiredT()) * (robotPosition[0] - bezierX(desiredT())) + bezierY(desiredT())){
             thetaNormal = Math.atan(-1 / derivative(desiredT()));
         }else{
-            thetaNormal = SplineMath.addAngles(Math.atan(-1 / derivative(desiredT())), Math.PI);
+            thetaNormal = Math.atan(-1 / derivative(desiredT())) + Math.PI;
         }
-        
-        //checking if the curve is moving left or right
-
-        if(bezierX(desiredT()) <= bezierX(desiredT() + 0.01)){
-            thetaTangent = Math.atan(derivative(desiredT()));
-        }else{
-            thetaTangent = SplineMath.addAngles(Math.atan(derivative(desiredT())), Math.PI);
-        }
+        reverser = bezierX(desiredT()) < bezierX(desiredT() + 0.001) ? 0 : Math.PI;
 
         clippedDistance = SplineMath.clip(distance(desiredT()), 0, correctionDistance);
 
-        lx = bezierX(desiredT()) + Math.cos(thetaTangent) * (correctionDistance - clippedDistance);
-        ly = bezierY(desiredT()) + Math.sin(thetaTangent) * (correctionDistance - clippedDistance);
+        lx = bezierX(desiredT()) + Math.cos(thetaTangent + reverser) * (correctionDistance - clippedDistance);
+        ly = bezierY(desiredT()) + Math.sin(thetaTangent + reverser) * (correctionDistance - clippedDistance);
 
-        reverser = bezierX(desiredT()) < robotPosition[0] ? Math.PI : 0;
-
+        bverser = lx < robotPosition[0] ? Math.PI : 0;
 
         if(clippedDistance < correctionDistance){
-            thetaTrue = SplineMath.addAngles(Math.atan((robotPosition[1] - ly) / (robotPosition[0] - lx)), reverser);
+            thetaTrue = SplineMath.addAngles(Math.atan((robotPosition[1] - ly) / (robotPosition[0] - lx)), bverser);
         }else{
             thetaTrue = thetaNormal;
         }

@@ -145,7 +145,7 @@ public class Spline {
         //used to check which angle from the line to use (left to right or right to left)
         // using over or under tangent line to check
 
-        if(robotPosition[1] >= (-1 / derivative(desiredT())) * (robotPosition[0] - bezierX(desiredT()))){
+        if(robotPosition[1] <= (derivative(desiredT())) * (robotPosition[0] - bezierX(desiredT())) + bezierY(desiredT())){
             thetaNormal = Math.atan(-1 / derivative(desiredT()));
         }else{
             thetaNormal = SplineMath.addAngles(Math.atan(-1 / derivative(desiredT())), Math.PI);
@@ -172,7 +172,8 @@ public class Spline {
         }else{
             thetaTrue = thetaTangent;
         }
-        return thetaTangent;
+        
+        return thetaNormal;
 
     }
 

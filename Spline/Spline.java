@@ -166,14 +166,19 @@ public class Spline {
 
         clippedDistance = SplineMath.clip(distance(desiredT()), 0, correctionDistance);
 
-        // going to make a mini Bezier to correct back on using normal and tangent lines
-        if(clippedDistance > correctionDeadband){
-            thetaTrue = SplineMath.addAngles((clippedDistance / correctionDistance) * thetaNormal, (correctionDistance - clippedDistance / correctionDistance) * thetaTangent);
-        }else{
+
+        //draws out a chase point to lerp to, but only within correction range
+        if(distance(desiredT()) > correctionDistance){
+            thetaTrue = thetaNormal;
+        }else if(distance(desiredT()) < correctionDeadband){
             thetaTrue = thetaTangent;
+        }else{
+            thetaTrue = 0;
         }
+
+
         
-        return thetaNormal;
+        return thetaTrue;
 
     }
 

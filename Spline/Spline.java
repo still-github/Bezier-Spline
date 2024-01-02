@@ -166,4 +166,13 @@ public class Spline {
 
     }
 
+    public boolean finishedSplining(){
+        if(desiredT() >= 1){
+            return true;
+        }else{
+            return false;
+        }
+        
+    }
+
 }

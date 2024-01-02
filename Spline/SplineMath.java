@@ -1,15 +1,32 @@
 package Spline;
 
 public class SplineMath {
-    
     /**
-     * gives angle from -π / 2 to π / 2
-     * @param slope input slope 
-     * @return get angle out
+     * adds angles (please use radians )
+     * @param angleOne
+     * @param angleTwo
+     * @return added angles bounded between [-π, π]
      */
-    public double slopeToAngle(double slope){
-        double angle = Math.atan(slope);
-        return angle;
+    public static double addAngles(double angleOne, double angleTwo){
+        double sum = angleOne + angleTwo;
+        if(sum > Math.PI){
+            sum = sum - 2 * Math.PI;
+        }else if(sum < -Math.PI){
+            sum = sum + 2 * Math.PI;
+        }
+
+        return sum;
+    }
+
+    public static double clip(double value, double min, double max){
+        if(value < min){
+            return min;
+        }else if(value > max){
+            return max;
+        }else{
+            return value;
+        }
+
     }
 
 }

@@ -4,27 +4,28 @@ import java.util.stream.DoubleStream;
 
 public class Spline {
 
-    //TODO: add distance as a factor for desiredT
+    //TODO: add distance as a factor for desiredT?
+    //TODO: eventually change to interpolating spline
 
     
     private double[][] points;
     private double correctionDistance;
     private double[] robotPosition;
-
-
+    private double correctionDeadband;
 
     /**
      * this uses cubic bezier so there should be 4 points, the first and last are the start and end points, the middle two are the points that define the curve.
-     * Highly recommend graphing the curves using Desmos (link in readme).
+     * Highly recommend graphing the curves using Desmos (link in readme soon).
      * @param points input points (should be 4)
      * @param correctionDistance how far off should the bot be before curving back on
      * @param robotPosition starting point of robot
      */
-    public Spline(double[][] points, double correctionDistance, double[] robotPosition){
+    public Spline(double[][] points, double correctionDistance, double[] robotPosition, double correctionDeadband){
         
         this.points = points;
         this.correctionDistance = correctionDistance;
         this.robotPosition = robotPosition;
+        this.correctionDeadband = correctionDeadband;
 
     }
 
@@ -44,7 +45,7 @@ public class Spline {
      * @param t since we are using parametrics, t is just the percent along the curve the bot is
      * @return x coordinate of the bot at t 
      */
-    private double bezierX(double t){
+    public double bezierX(double t){
         
         double x1 = points[0][0];
         double x2 = points[1][0]; 
@@ -62,17 +63,29 @@ public class Spline {
      * @param t since we are using parametrics, t is just the percent along the curve the bot is
      * @return y coordinate of the bot at t 
      */
-    private double bezierY(double t){
+    public double bezierY(double t){
         
         double y1 = points[0][1];
         double y2 = points[1][1]; 
         double y3 = points[2][1];
         double y4 = points[3][1];
 
-        double by = Math.pow(1-t,3) * y1 + 3 * t * Math.pow(1-t,2) * y2 + 3* Math.pow(t,2) * (1-t) * y3 + Math.pow(t, 3) * y4;
+        double by = Math.pow(1-t,3) * y1 + 3 * t * Math.pow(1-t,2) * y2 + 3 * Math.pow(t,2) * (1-t) * y3 + Math.pow(t, 3) * y4;
 
         return by;
 
+    }
+    /**
+     * gets derivative of bezier using definition
+     * @param t percent along parametric
+     * @return bezier derivative
+     */
+    private double derivative(double t){
+        double derivativeY = (bezierY(t + 0.0001) - bezierY(t)) / 0.0001;
+        double derivativeX = (bezierX(t + 0.0001) - bezierX(t)) / 0.0001;
+        double derivative = derivativeY / derivativeX;
+
+        return derivative;
     }
 
     /**
@@ -80,7 +93,7 @@ public class Spline {
      * @param t used for parametrics, value from (0,1)
      * @return gives distance between robot and the input t value
      */
-    private double distance(double t){
+    public double distance(double t){
 
         double d = Math.sqrt(Math.pow(bezierY(t) - robotPosition[1], 2) + Math.pow(bezierX(t) - robotPosition[0], 2));
 
@@ -95,7 +108,7 @@ public class Spline {
      */
     public double desiredT(){
 
-        double height = 1000000;
+        double height = 10000000;
 
         double desiredT = 0;
 
@@ -103,7 +116,7 @@ public class Spline {
         double splineSample = 50;
 
 
-        double[] intersections = DoubleStream.iterate(0, n -> n + 1 / splineSample).limit((int)splineSample).toArray();
+        double[] intersections = DoubleStream.iterate(0, n -> n + 1 / splineSample).limit((int)(splineSample)).toArray();
 
         for (double i : intersections){
             if(distance(i) < height){
@@ -116,6 +129,51 @@ public class Spline {
         }
 
         return desiredT;
+    }
+
+    /**
+     * gives angle bot needs to move at [-π, π]
+     * @return
+     */
+    public double angle(){
+
+        double thetaNormal;
+        double thetaTangent;
+        double thetaTrue;
+        double clippedDistance;
+        
+        //used to check which angle from the line to use (left to right or right to left)
+        // using over or under tangent line to check
+
+        if(robotPosition[1] >= (-1 / derivative(desiredT())) * (robotPosition[0] - bezierX(desiredT()))){
+            thetaNormal = Math.atan(-1 / derivative(desiredT()));
+        }else{
+            thetaNormal = SplineMath.addAngles(Math.atan(-1 / derivative(desiredT())), Math.PI);
+        }
+        
+        //checking if the curve is moving left or right
+
+        if(bezierX(desiredT()) <= bezierX(desiredT() + 0.01)){
+            thetaTangent = Math.atan(derivative(desiredT()));
+        }else{
+            thetaTangent = SplineMath.addAngles(Math.atan(derivative(desiredT())), Math.PI);
+        }
+
+        //adding correction
+
+        // this is to make sure it follows the normal line until the desired distance to start correcting
+        // distance is positive so no need for a negative lower bound
+
+        clippedDistance = SplineMath.clip(distance(desiredT()), 0, correctionDistance);
+
+        // going to make a mini Bezier to correct back on using normal and tangent lines
+        if(clippedDistance > correctionDeadband){
+            thetaTrue = SplineMath.addAngles((clippedDistance / correctionDistance) * thetaNormal, (correctionDistance - clippedDistance / correctionDistance) * thetaTangent);
+        }else{
+            thetaTrue = thetaTangent;
+        }
+        return thetaTangent;
+
     }
 
 }

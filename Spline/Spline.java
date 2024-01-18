@@ -2,15 +2,18 @@ package Spline;
 
 import java.util.stream.DoubleStream;
 
+import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
+
 public class Spline {
 
     //TODO: add distance as a factor for desiredT?
-    //TODO: eventually change to interpolating spline
+    //TODO: eventually change to interpolating spline like catmull-rom
 
     
     private double[][] points;
     private double correctionDistance;
-    private double[] robotPosition;
+    public double[] robotPosition;
+    private DriveTrain drivetrain;
     private int steps;
 
     /**
@@ -21,11 +24,11 @@ public class Spline {
      * @param robotPosition starting point of robot
      * @param steps number of intervals desired t is broken into (larger means more precise)
      */
-    public Spline(double[][] points, double correctionDistance, double[] robotPosition, int steps) {
+    public Spline(double[][] points, double correctionDistance, DriveTrain drivetrain, int steps) {
         
         this.points = points;
         this.correctionDistance = correctionDistance;
-        this.robotPosition = robotPosition;
+        this.drivetrain = drivetrain;
         this.steps = steps;
     }
 
@@ -35,7 +38,8 @@ public class Spline {
      */
     public void update(double[] robotPosition){
 
-        this.robotPosition = robotPosition;
+        drivetrain.updateWithOdometry();
+        robotPosition = new double[]{dt.getX(), dt.getY()};
 
     }
 

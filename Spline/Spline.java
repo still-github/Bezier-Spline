@@ -38,7 +38,7 @@ public class Spline {
      */
     public void update(double[] robotPosition){
 
-        drivetrain.updateWithOdometry();
+        drivetrain.update();
         robotPosition = new double[]{dt.getX(), dt.getY()};
 
     }

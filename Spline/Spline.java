@@ -23,8 +23,9 @@ public class Spline {
      * @param correctionDistance how far off should the bot be before curving back on
      * @param drivetrain the bots drivetrain
      * @param steps number of intervals desired t is broken into (larger means more precise)
+     * @param ending whether it needs to linear spline to the end coordinate
      */
-    public Spline(double[][] points, double correctionDistance, Drivetrain drivetrain, int steps) {
+    public Spline(double[][] points, double correctionDistance, Drivetrain drivetrain, int steps, boolean ending) {
         
         this.points = points;
         this.correctionDistance = correctionDistance;
@@ -34,6 +35,7 @@ public class Spline {
 
     /**
      * updates the position of robot
+     * call every iteration of the loop
      */
     public void update(){
 
@@ -49,16 +51,14 @@ public class Spline {
      * @param t since we are using parametrics, t is just the percent along the curve the bot is
      * @return x coordinate of the bot at t 
      */
-    public double bezierX(double t){
+    private double bezierX(double t){
         
         double x1 = points[0][0];
         double x2 = points[1][0]; 
         double x3 = points[2][0];
         double x4 = points[3][0];
 
-        double bx = Math.pow(1-t,3) * x1 + 3 * t * Math.pow(1-t,2) * x2 + 3* Math.pow(t,2) * (1-t) * x3 + Math.pow(t, 3) * x4;
-
-        return bx;
+        return Math.pow(1-t,3) * x1 + 3 * t * Math.pow(1-t,2) * x2 + 3* Math.pow(t,2) * (1-t) * x3 + Math.pow(t, 3) * x4;
 
     }
     
@@ -67,16 +67,14 @@ public class Spline {
      * @param t since we are using parametrics, t is just the percent along the curve the bot is
      * @return y coordinate of the bot at t 
      */
-    public double bezierY(double t){
+    private double bezierY(double t){
         
         double y1 = points[0][1];
         double y2 = points[1][1]; 
-        double y3 = -1 * points[2][1];
-        double y4 = -1 * points[3][1];
+        double y3 = points[2][1];
+        double y4 = points[3][1];
 
-        double by = Math.pow(1-t,3) * y1 + 3 * t * Math.pow(1-t,2) * y2 + 3 * Math.pow(t,2) * (1-t) * y3 + Math.pow(t, 3) * y4;
-
-        return by;
+        return Math.pow(1-t,3) * y1 + 3 * t * Math.pow(1-t,2) * y2 + 3 * Math.pow(t,2) * (1-t) * y3 + Math.pow(t, 3) * y4;
 
     }
     /**
@@ -87,9 +85,8 @@ public class Spline {
     private double derivative(double t){
         double derivativeY = (bezierY(t + 0.0001) - bezierY(t)) / 0.0001;
         double derivativeX = (bezierX(t + 0.0001) - bezierX(t)) / 0.0001;
-        double derivative = derivativeY / derivativeX;
-
-        return derivative;
+        
+        return derivativeY / derivativeX;
     }
 
     /**
@@ -99,9 +96,7 @@ public class Spline {
      */
     public double distance(double t){
 
-        double d = Math.sqrt(Math.pow(bezierY(t) - robotPosition[1], 2) + Math.pow(bezierX(t) - robotPosition[0], 2));
-
-        return d;
+        return Math.sqrt(Math.pow(bezierY(t) - robotPosition[1], 2) + Math.pow(bezierX(t) - robotPosition[0], 2));
 
     }
     // desiredT() is currently public for testing purposes, I'll make it private later
@@ -140,6 +135,8 @@ public class Spline {
      * @return
      */
     public double angle(){
+        
+        //logic for bezier curving
 
         double thetaTangent;
         double thetaTrue;
@@ -166,17 +163,14 @@ public class Spline {
             thetaTrue = SplineMath.addAngles(Math.atan((robotPosition[1] - bezierY(desiredT())) / (robotPosition[0] - bezierX(desiredT()))), bverser);
         }
         
-        return thetaTrue;
+        //logic for linear ending
+        double slopeLinear = (points[3][1] - robotPosition[1]) / (points[3][0] - robotPosition[0]);
+        double thetaLinear = robotPosition[0] < points[3][0] ? Math.atan(slopeLinear) : SplineMath.addAngles(Math.atan(slopeLinear), Math.PI);
+    
 
-    }
+        //distance logic 
+        return distance(1) < correctionDistance ? thetaLinear : thetaTrue;
 
-    public boolean finishedSplining(){
-        if(desiredT() >= 1){
-            return true;
-        }else{
-            return false;
-        }
-        
     }
 
 }

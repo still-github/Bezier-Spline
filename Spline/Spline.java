@@ -25,7 +25,7 @@ public class Spline {
      * @param steps number of intervals desired t is broken into (larger means more precise)
      * @param ending whether it needs to linear spline to the end coordinate
      */
-    public Spline(double[][] points, double correctionDistance, Drivetrain drivetrain, int steps, boolean ending) {
+    public Spline(double[][] points, double correctionDistance, Drivetrain drivetrain, int steps) {
         
         this.points = points;
         this.correctionDistance = correctionDistance;
@@ -171,6 +171,24 @@ public class Spline {
         //distance logic 
         return distance(1) < correctionDistance ? thetaLinear : thetaTrue;
 
+    }
+    /**
+     * used for speed control, the higher the change in steepness the lower the number
+     * @return returns vaue [0,1] based on change in steepness
+     */
+    public double velocitySteepness(){
+        double vs = Math.abs(Math.atan(derivative(desiredT() + 0.001)) - Math.atan(derivative(desiredT()))) / 0.001;
+
+        return SplineMath.clip(1 / Math.pow(vs, 3/20), 0, 1);
+    }
+    
+    /**
+     * increases speed based on how far off the curve is 
+     * @return value from [0,1] the farther it is off the curve 
+     */
+    public double velocityDistance(){
+        double vd = distance(desiredT()) / correctionDistance;
+        return SplineMath.clip(vd, 0, 1);
     }
 
 }

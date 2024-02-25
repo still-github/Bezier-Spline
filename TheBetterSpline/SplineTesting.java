@@ -7,7 +7,8 @@ public class SplineTesting {
 
         Spline spline = new Spline(new Point(-41,28.9), Math.PI / 4, new RobotPose(-9.1, -4.7, 0));
 
-        System.out.println(spline.desiredT());
+        System.out.println(spline.driveVector().x);
+        System.out.println(spline.driveVector().y);
 
 
     }

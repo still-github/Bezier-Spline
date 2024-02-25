@@ -58,8 +58,12 @@ public class Spline {
     }
 
     //desiredT??
-    public double desiredT(){
+    private double desiredT(){
         return 1 - fromLine() / distanceOnLine();
+    }
+
+    private double projectedDistance(){
+        return Math.sqrt(Math.pow(c1 - optimalX(), 2) + Math.pow(v1 - fromLine(),2));
     }
 
     /**
@@ -67,12 +71,19 @@ public class Spline {
      * @return vector as vector object
      */
     public Vector driveVector(){
-        double vx = desiredT() * (c1 - optimalX()) + optimalX() - xr;
-        double vy = desiredT() * (v1 - lineProjection(optimalX())) + lineProjection(optimalX()) - yr;
+        double vx;
+        double vy;
         
+        if(distanceOnLine() > projectedDistance()){
+            vx = desiredT() * (c1 - optimalX()) + optimalX() - xr;
+            vy = desiredT() * (v1 - lineProjection(optimalX())) + lineProjection(optimalX()) - yr;
+        }else{
+            vx = xr - optimalX();
+            vy = yr - fromLine();
+        }
         Vector unshrunkVector =  new Vector(vx, vy);
 
-        return unshrunkVector;
+        return unshrunkVector.clipMagnitude(1);
 
     }
 
@@ -82,7 +93,6 @@ public class Spline {
      * @param robotPose current robot pose
      */
     public void update(RobotPose robotPose){
-        this.robotPose = robotPose;
         yr = this.robotPose.y;
         xr = this.robotPose.x;
     }

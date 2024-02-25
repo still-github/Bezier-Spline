@@ -99,8 +99,9 @@ public class Spline {
      * @param robotPose current robot pose
      */
     public void update(RobotPose robotPose){
-        yr = this.robotPose.y;
-        xr = this.robotPose.x;
+        this.robotPose = robotPose;
+        this.xr = robotPose.x;
+        this.yr = robotPose.y;
     }
 
 }

@@ -90,7 +90,7 @@ public class Spline {
         }
         Vector unshrunkVector =  new Vector(vx, vy);
 
-        return unshrunkVector;
+        return unshrunkVector.clipMagnitude(1);
     }
 
 

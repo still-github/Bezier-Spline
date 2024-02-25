@@ -4,9 +4,9 @@ import MathStuff.*;
 
 public class Spline {
     private Point waypoint;
-    private RobotPose robotPose;
     private double slope;
     private Point slopePoint;
+    private double angleMod;
     private double c1;
     private double c2;
     private double v2;
@@ -23,11 +23,12 @@ public class Spline {
      */
     public Spline(Point waypoint, double angle, RobotPose robotPose){
         this.waypoint = waypoint;
-        this.robotPose = robotPose;
+        
+        angleMod = Math.abs(angle) == Math.PI / 2 ? angleMod = 0.0001 : 0;
 
-        slope = Math.abs(angle) == Math.PI / 2 ? slope = Math.tan(angle + 0.00000001) : Math.tan(angle);
+        slope = Math.tan(angle + angleMod);
 
-        slopePoint = new Point(waypoint.x + Math.cos(angle), waypoint.y + Math.sin(angle));
+        slopePoint = new Point(waypoint.x + Math.cos(angle + angleMod), waypoint.y + Math.sin(angle + angleMod));
 
         c1 = waypoint.x;
         v1 = waypoint.y;
@@ -42,7 +43,6 @@ public class Spline {
     private double lineProjection(double x){
         return slope * (x - waypoint.x) + waypoint.y;
     }
-    
 
     //closest x value 
     public double optimalX(){
@@ -99,7 +99,6 @@ public class Spline {
      * @param robotPose current robot pose
      */
     public void update(RobotPose robotPose){
-        this.robotPose = robotPose;
         this.xr = robotPose.x;
         this.yr = robotPose.y;
     }

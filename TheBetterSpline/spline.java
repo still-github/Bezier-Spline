@@ -53,13 +53,13 @@ public class Spline {
         return Math.sqrt(Math.pow(c1 - optimalX(), 2) + Math.pow(v1 - lineProjection(optimalX()), 2));
     }
     
-    public double fromLine(){
+    private double fromLine(){
         return Math.sqrt(Math.pow(xr - optimalX(), 2) + Math.pow(yr - lineProjection(optimalX()), 2));
     }
 
     //desiredT??
-    private double desiredT(){
-        return 1 - distanceOnLine() / fromLine();
+    public double desiredT(){
+        return 1 - fromLine() / distanceOnLine();
     }
 
     /**

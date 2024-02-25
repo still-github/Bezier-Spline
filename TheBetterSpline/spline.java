@@ -53,9 +53,8 @@ public class Spline {
         return Math.sqrt(Math.pow(c1 - optimalX(), 2) + Math.pow(v1 - lineProjection(optimalX()), 2));
     }
     
-
-    private double fromLine(){
-        return Math.sqrt(Math.pow(xr - c1, 2) + Math.pow(yr - v1, 2));
+    public double fromLine(){
+        return Math.sqrt(Math.pow(xr - optimalX(), 2) + Math.pow(yr - lineProjection(optimalX()), 2));
     }
 
     //desiredT??
@@ -73,7 +72,7 @@ public class Spline {
         
         Vector unshrunkVector =  new Vector(vx, vy);
 
-        return unshrunkVector.clipMagnitude(1);
+        return unshrunkVector;
 
     }
 
